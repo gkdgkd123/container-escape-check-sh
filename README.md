@@ -12,7 +12,8 @@
 
 # Introduction
 
-**This is a POSIX sh compatible fork.原版只适配bash，这个版本可以在sh上使用，适配无bash环境。**
+**原版仅适配bash环境，此版本可在sh上使用，适配无bash环境，并修复部分bug。**
+**This is a POSIX sh compatible fork.**
 
 Original tool requires `bash`, but many minimal container images (like **Alpine Linux**) only have `sh` installed by default. This version has been refactored to support `sh`, making it run smoothly in almost any Linux container environment.
 
