@@ -2,15 +2,12 @@
 
 
 echo -e ""
-echo -e "\033[34m=============================================================\033[0m"
-echo -e "\033[34m                Containers Escape Check v0.3                 \033[0m"
-echo -e "\033[34m-------------------------------------------------------------\033[0m"
-echo -e "\033[34m                     Author:  TeamsSix                       \033[0m"
-echo -e "\033[34m                     Twitter: TeamsSix                       \033[0m"
-echo -e "\033[34m                     Blog: teamssix.com                      \033[0m"
-echo -e "\033[34m             WeChat Official Accounts: TeamsSix              \033[0m"
-echo -e "\033[34m Project Address: github.com/teamssix/container-escape-check \033[0m"
-echo -e "\033[34m=============================================================\033[0m"
+echo -e "\033[34m=================================================================\033[0m"
+echo -e "\033[34m                Containers Escape Check FOR sh v0.4              \033[0m"
+echo -e "\033[34m-----------------------------------------------------------------\033[0m"
+echo -e "\033[34m                     Author:  TeamsSix/GKDf1sh                   \033[0m"
+echo -e "\033[34m Project Address: github.com/gkdgkd123/container-escape-check-sh \033[0m"
+echo -e "\033[34m=================================================================\033[0m"
 echo -e ""
 
 # Supported detection methods:
@@ -101,13 +98,37 @@ InstallCommand(){
 
 # 0. Check The Current Environment
 CheckTheCurrentEnvironment(){
-    if [ ! -f "/proc/1/cgroup" ];then
-        IsContainer=0
-    else
-        cat /proc/1/cgroup | grep -qi docker && IsContainer=1 || IsContainer=0
+    IsContainer=0
+    
+    # Method 1: Check for /.dockerenv file (Docker indicator)
+    if [ -f "/.dockerenv" ]; then
+        IsContainer=1
     fi
-
-    if [ $IsContainer -eq 0 ];then
+    
+    # Method 2: Check for /run/.containerenv file (Podman/Systemd-nspawn indicator)
+    if [ -f "/run/.containerenv" ]; then
+        IsContainer=1
+    fi
+    
+    # Method 3: Check cgroup for container indicators
+    if [ -f "/proc/1/cgroup" ]; then
+        cat /proc/1/cgroup | grep -qiE "(docker|lxc|kubepods|containerd)" && IsContainer=1
+    fi
+    
+    # Method 4: Check for container-specific environment variables
+    if [ ! -z "$KUBERNETES_SERVICE_HOST" ] || [ ! -z "$KUBERNETES_SERVICE_PORT" ]; then
+        IsContainer=1
+    fi
+    
+    # Method 5: Check /proc/self/cgroup for current process
+    if [ -f "/proc/self/cgroup" ]; then
+        cat /proc/self/cgroup | grep -qiE "(docker|lxc|kubepods|containerd)" && IsContainer=1
+    fi
+    
+    # Method 6: Check if running in systemd-nspawn
+    systemd-detect-virt >/dev/null 2>&1 && [ $(systemd-detect-virt) != "none" ] && IsContainer=1
+    
+    if [ $IsContainer -eq 0 ]; then
         echo -e "\033[31m[-] Not currently a container environment.\033[0m"
         exit 1
     else
@@ -197,31 +218,31 @@ MinorRevision=`echo -e $LinuxKernelVersion | awk -F '.' '{print $3}'`
 # 2.6.22 <= ver <= 4.8.3
 CheckCVE_2016_5195DirtyCow(){
     # 2.6.22 <= ver <= 2.6.xx
-    if [[ "$KernelVersion" -eq 2 && "$MajorRevision" -eq 6 && "$MinorRevision" -ge 22 ]];then
+    if [ "$KernelVersion" -eq 2 ] && [ "$MajorRevision" -eq 6 ] && [ "$MinorRevision" -ge 22 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2016-5195 DirtyCow vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
 
     # 2.7 <= ver <= 2.x
-    if [[ "$KernelVersion" -eq 2 && "$MajorRevision" -ge 7 ]];then
+    if [ "$KernelVersion" -eq 2 ] && [ "$MajorRevision" -ge 7 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2016-5195 DirtyCow vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
 
     # ver = 3
-    if [[ "$KernelVersion" -eq 3 ]];then
+    if [ "$KernelVersion" -eq 3 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2016-5195 DirtyCow vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
 
     # 4.x <= ver <= 4.8
-    if [[ "$KernelVersion" -eq 4 && "$MajorRevision" -lt 8 ]];then
+    if [ "$KernelVersion" -eq 4 ] && [ "$MajorRevision" -lt 8 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2016-5195 DirtyCow vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
 
     # 4.8.x <= ver <= 4.8.3
-    if [[ "$KernelVersion" -eq 4 && "$MajorRevision" -eq 8 && "$MinorRevision" -le 3 ]];then
+    if [ "$KernelVersion" -eq 4 ] && [ "$MajorRevision" -eq 8 ] && [ "$MinorRevision" -le 3 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2016-5195 DirtyCow vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
@@ -232,13 +253,13 @@ CheckCVE_2016_5195DirtyCow(){
 # 4.6 <= ver < 5.9 
 CheckCVE_2020_14386(){
     # 4.6 <= ver < 4.x
-    if [[ "$KernelVersion" -eq 4 && "$MajorRevision" -ge 6 ]];then
+    if [ "$KernelVersion" -eq 4 ] && [ "$MajorRevision" -ge 6 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2020-14386 vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
 
     # 5.x <= ver < 5.9
-    if [[ $KernelVersion -eq 5 && $MajorRevision -lt 9 ]];then
+    if [ "$KernelVersion" -eq 5 ] && [ "$MajorRevision" -lt 9 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2020-14386 vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
@@ -248,42 +269,42 @@ CheckCVE_2020_14386(){
 # 8. CVE-2022-0847 DirtyPipe
 # 5.8 <= ver < 5.10.102 < ver < 5.15.25 <  ver <  5.16.11
 CheckCVE_2022_0847(){
-    if [ $KernelVersion -eq 5 ];then
+    if [ "$KernelVersion" -eq 5 ]; then
         # 5.8 <= ver < 5.10.x
-        if [[ "$MajorRevision" -ge 8 && "$MajorRevision" -lt 10 ]];then
+        if [ "$MajorRevision" -ge 8 ] && [ "$MajorRevision" -lt 10 ]; then
             echo -e "\033[92m[+] The current container has the CVE-2022-0847 DirtyPipe vulnerability.\033[0m"
             VulnerabilityExists=1
         fi
         # 5.10.x <= ver < 5.10.102
-        if [[ "$MajorRevision" -eq 10 && "$MinorRevision" -lt 102 ]];then
+        if [ "$MajorRevision" -eq 10 ] && [ "$MinorRevision" -lt 102 ]; then
             echo -e "\033[92m[+] The current container has the CVE-2022-0847 DirtyPipe vulnerability.\033[0m"
             VulnerabilityExists=1
         fi
         # 5.10.102 < ver <= 5.10.x
-        if [[ "$MajorRevision" -eq 10 && "$MinorRevision" -gt 102 ]];then
+        if [ "$MajorRevision" -eq 10 ] && [ "$MinorRevision" -gt 102 ]; then
             echo -e "\033[92m[+] The current container has the CVE-2022-0847 DirtyPipe vulnerability.\033[0m"
             VulnerabilityExists=1
         fi
 
         # 5.10.x < ver < 5.15.x
-        if [[ "$MajorRevision" -gt 10 && "$MajorRevision" -lt 15 ]];then
+        if [ "$MajorRevision" -gt 10 ] && [ "$MajorRevision" -lt 15 ]; then
             echo -e "\033[92m[+] The current container has the CVE-2022-0847 DirtyPipe vulnerability.\033[0m"
             VulnerabilityExists=1
         fi
 
         # 5.15.x <= ver < 5.15.25
-        if [[ "$MajorRevision" -eq 15 && "$MinorRevision" -lt 25 ]];then
+        if [ "$MajorRevision" -eq 15 ] && [ "$MinorRevision" -lt 25 ]; then
             echo -e "\033[92m[+] The current container has the CVE-2022-0847 DirtyPipe vulnerability.\033[0m"
             VulnerabilityExists=1
         fi
         # 5.15.25 < ver <= 5.15.x
-        if [[ "$MajorRevision" -eq 15 && "$MinorRevision" -gt 25 ]];then
+        if [ "$MajorRevision" -eq 15 ] && [ "$MinorRevision" -gt 25 ]; then
             echo -e "\033[92m[+] The current container has the CVE-2022-0847 DirtyPipe vulnerability.\033[0m"
             VulnerabilityExists=1
         fi
 
         # 5.16.x <= ver < 5.16.11
-        if [[ "$MajorRevision" -eq 16 && "$MinorRevision" -lt 11 ]];then
+        if [ "$MajorRevision" -eq 16 ] && [ "$MinorRevision" -lt 11 ]; then
             echo -e "\033[92m[+] The current container has the CVE-2022-0847 DirtyPipe vulnerability.\033[0m"
             VulnerabilityExists=1
         fi
@@ -295,7 +316,7 @@ CheckCVE_2022_0847(){
 # 4.4 <= ver<=4.13
 CheckCVE_2017_1000112(){
     # 4.4 <= ver <= 4.13
-    if [[ "$KernelVersion" -eq 4 && "$MajorRevision" -ge 4 && "$MajorRevision" -le 13 ]];then
+    if [ "$KernelVersion" -eq 4 ] && [ "$MajorRevision" -ge 4 ] && [ "$MajorRevision" -le 13 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2017-1000112 vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
@@ -306,24 +327,24 @@ CheckCVE_2017_1000112(){
 # 2.6.19 <= ver <= 5.12
 CheckCVE_2021_22555(){
     # 2.6.19 <= ver <= 2.6.xx
-    if [[ "$KernelVersion" -eq 2 && "$MajorRevision" -eq 6 && "$MinorRevision" -ge 19 ]];then
+    if [ "$KernelVersion" -eq 2 ] && [ "$MajorRevision" -eq 6 ] && [ "$MinorRevision" -ge 19 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2021-22555 vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
     # 2.7 <= ver <= 2.x
-    if [[ "$KernelVersion" -eq 2 && "$MajorRevision" -ge 7 ]];then
+    if [ "$KernelVersion" -eq 2 ] && [ "$MajorRevision" -ge 7 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2021-22555 vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
 
     # ver = 3 or ver = 4
-    if [[ "$KernelVersion" -eq 3 || "$KernelVersion" -eq 4 ]];then
+    if [ "$KernelVersion" -eq 3 ] || [ "$KernelVersion" -eq 4 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2021-22555 vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
 
     # 5.x <= ver <= 5.12
-    if [[ $KernelVersion -eq 5 && $MajorRevision -le 12 ]];then
+    if [ "$KernelVersion" -eq 5 ] && [ "$MajorRevision" -le 12 ]; then
         echo -e "\033[92m[+] The current container has the CVE-2021-22555 vulnerability.\033[0m"
         VulnerabilityExists=1
     fi
@@ -338,7 +359,7 @@ CheckVarLogMount(){
         IsPodEnv=1
     fi
     if [ $IsPodEnv -eq 1 ];then
-        find / -name lastlog 2>/dev/null | wc -l | grep -q 3 && IsVarLogMount=1 || IsVarLogMount=0
+        find /var/log -name lastlog 2>/dev/null | wc -l | grep -q 1 && IsVarLogMount=1 || IsVarLogMount=0
         if [ $IsVarLogMount -eq 1 ];then
             echo -e "\033[92m[+] The current container has /var/log mounted.\033[0m"
             VulnerabilityExists=1
@@ -389,12 +410,12 @@ CheckCVE_2022_0492(){
     test_dir=/tmp/.cve-2022-0492-test
     if mkdir -p $test_dir ; then
         # Test whether escape via user namespaces is possible
-        while read -r subsys
+        cat /proc/$$/cgroup | grep -Eo '[0-9]+:[^:]+' | grep -Eo '[^:]+$' | while read -r subsys
         do
             if unshare -UrmC --propagation=unchanged bash -c "mount -t cgroup -o $subsys cgroup $test_dir 2>&1 >/dev/null && test -w $test_dir/release_agent" >/dev/null 2>&1 ; then
                 echo -e "\033[92m[+] The current container has the CVE-2022-0492 vulnerability.\033[0m"
             fi
-        done <<< $(cat /proc/$$/cgroup | grep -Eo '[0-9]+:[^:]+' | grep -Eo '[^:]+$')
+        done
         umount $test_dir >/dev/null 2>&1 && rm -rf $test_dir >/dev/null 2>&1
     fi    
 }
