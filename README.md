@@ -1,14 +1,22 @@
-# Container Escape Check 容器逃逸检测
+# Container Escape Check For sh (容器逃逸检测 sh 兼容版)
 
-[![GitHub stars](https://img.shields.io/github/stars/teamssix/container-escape-check)](https://github.com/teamssix/container-escape-check) [![GitHub issues](https://img.shields.io/github/issues/teamssix/container-escape-check)](https://github.com/teamssix/container-escape-check/issues) [![GitHub release](https://img.shields.io/github/release/teamssix/container-escape-check)](https://github.com/teamssix/container-escape-check/releases)  [![img](https://img.shields.io/badge/author-TeamsSix-blueviolet)](https://github.com/teamssix) [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/teamssix.svg?style=social&label=Follow%20the%20author)](https://twitter.com/teamssix)
+[![GitHub stars](https://img.shields.io/github/stars/gkdgkd123/container-escape-check-sh)](https://github.com/gkdgkd123/container-escape-check-sh)
+[![GitHub issues](https://img.shields.io/github/issues/gkdgkd123/container-escape-check-sh)](https://github.com/gkdgkd123/container-escape-check-sh/issues)
+[![GitHub forks](https://img.shields.io/github/forks/gkdgkd123/container-escape-check-sh)](https://github.com/gkdgkd123/container-escape-check-sh)
+[![Forked From](https://img.shields.io/badge/Forked%20from-TeamsSix-blue)](https://github.com/teamssix/container-escape-check)
+[![Maintainer](https://img.shields.io/badge/Maintainer-gkdgkd123-green)](https://github.com/gkdgkd123)
 
-![container-escape-check](https://socialify.git.ci/teamssix/container-escape-check/image?description=1&font=Inter&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F49087564&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Dark)
+![container-escape-check](https://socialify.git.ci/gkdgkd123/container-escape-check-sh/image?description=1&font=Inter&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F49087564&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Dark)
 
-[中文](https://github.com/teamssix/container-escape-check/blob/master/README_ZH.md) | EN
+[中文](https://github.com/gkdgkd123/container-escape-check-sh/blob/master/README_ZH.md) | EN
 
-# Introduce
+# Introduction
 
-This script is used to detect Docker container escape methods, The following methods are currently supported:
+**This is a POSIX sh compatible fork.原版只适配bash，这个版本可以在sh上使用，适配无bash环境。**
+
+Original tool requires `bash`, but many minimal container images (like **Alpine Linux**) only have `sh` installed by default. This version has been refactored to support `sh`, making it run smoothly in almost any Linux container environment.
+
+This script is used to detect Docker container escape methods. The following methods are currently supported:
 
 1. Privileged Mode
 2. Mount docker Socket
@@ -18,68 +26,62 @@ This script is used to detect Docker container escape methods, The following met
 6. CVE-2016-5195 DirtyCow
 7. CVE-2020-14386 
 8. CVE-2022-0847 DirtyPipe
-8. CVE-2017-1000112
-8. CVE-2021-22555
-8. Mount Host Var Log
-8. CAP_DAC_READ_SEARCH (Requires container to support capsh command)
-8. CAP_SYS_ADMIN (Requires container to support capsh command)
-8. CAP_SYS_PTRACE (Requires container to support capsh command)
-8. CVE-2022-0492
+9. CVE-2017-1000112
+10. CVE-2021-22555
+11. Mount Host Var Log
+12. CAP_DAC_READ_SEARCH (Requires container to support capsh command)
+13. CAP_SYS_ADMIN (Requires container to support capsh command)
+14. CAP_SYS_PTRACE (Requires container to support capsh command)
+15. CVE-2022-0492
 
 # ✨ Usage
 
-Run this script with one command in the container.
+Run this script with one command in the container (Supports `sh`).
+
+### Method 1: Remote Execution (Recommended)
+
+```bash
+# Using wget
+wget [https://raw.githubusercontent.com/gkdgkd123/container-escape-check-sh/main/container-escape-check.sh](https://raw.githubusercontent.com/gkdgkd123/container-escape-check-sh/main/container-escape-check.sh) -O- | sh
+
+# Using curl
+curl -sL [https://raw.githubusercontent.com/gkdgkd123/container-escape-check-sh/main/container-escape-check.sh](https://raw.githubusercontent.com/gkdgkd123/container-escape-check-sh/main/container-escape-check.sh) | sh
 
 ```
-wget https://raw.githubusercontent.com/teamssix/container-escape-check/main/container-escape-check.sh -O- | bash
-```
 
-Or clone the project to run in the container.
+### Method 2: Clone and Run
 
-```
-git clone https://github.com/teamssix/container-escape-check.git
-cd container-escape-check
+```bash
+git clone [https://github.com/gkdgkd123/container-escape-check-sh.git](https://github.com/gkdgkd123/container-escape-check-sh.git)
+cd container-escape-check-sh
 chmod +x container-escape-check.sh
 ./container-escape-check.sh
+
 ```
 
-![](./img.png)
-
-If it feels good, remember to give the project a little star ✨
+If it helps you, please give a star ✨ to both this repo and the [original repo](https://github.com/teamssix/container-escape-check)!
 
 # ⚠️ Notes
 
+* **Compatibility:** This version is specifically optimized for `sh` shell environments.
 * This script needs to be run inside the docker container.
-* Most of the detection methods here are based on my experience, and there may be false positives or omissions. If you find these problems, please submit an Issue.
-* Some escape methods need to be judged according to the Docker version. I haven't thought of a way to get the Docker version from inside the container, so the script does not support the detection of this method yet.
+* Most of the detection methods here are based on experience, and there may be false positives or omissions. If you find these problems, please submit an Issue.
+
+# Acknowledgements
+
+* Original Author: [TeamsSix](https://github.com/teamssix)
+* Original Repo: [container-escape-check](https://github.com/teamssix/container-escape-check)
 
 # Changelog
 
-## v0.3 2022.4.7
+## sh-v0.3 (Current)  
 
-* Add CVE-2022-0492
-* If the capsh command does not exist, it will be installed automatically
-* Enhanced privileged mode detection
-* Enhanced /var/log detection
+* Ported entire logic from Bash to POSIX Sh.
+* Fixed syntax errors when running in Alpine/Minimal environments.
 
-## v0.2 2022.3.30
+## Original History
 
-* Add CVE-2017-1000112
-* Add CVE-2021-22555
-* Add Mount Host Var Log
-* Add CAP_DAC_READ_SEARCH
-* Add CAP_SYS_ADMIN
-* Add CAP_SYS_PTRACE
+* **v0.3 2022.4.7**: Add CVE-2022-0492, Enhanced privileged mode & /var/log detection.
+* **v0.2 2022.3.30**: Add CVE-2017-1000112, CVE-2021-22555, CAP checks, etc.
+* **v0.1 2022.3.18**: Initial release.
 
-## v0.1 2022.3.18
-
-* Add Privileged Mode
-* Add Mount docker Socket
-* Add Mount host procfs
-* Add Mount host root or etc directory
-* Add Open Docker Remote API
-* Add CVE-2016-5195 DirtyCow
-* Add CVE-2020-14386 
-* Add CVE-2022-0847 DirtyPipe
-
-![img](https://cdn.jsdelivr.net/gh/teamssix/BlogImages/imgs/TeamsSix_Subscription_Logo2.png)
