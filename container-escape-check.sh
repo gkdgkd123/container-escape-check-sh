@@ -3,7 +3,7 @@
 
 echo -e ""
 echo -e "\033[34m=================================================================\033[0m"
-echo -e "\033[34m                Containers Escape Check For sh v0.4              \033[0m"
+echo -e "\033[34m                Containers Escape Check For sh v0.3              \033[0m"
 echo -e "\033[34m-----------------------------------------------------------------\033[0m"
 echo -e "\033[34m                Original Author : TeamsSix                       \033[0m"
 echo -e "\033[36m                 Dev/Maintainer : GKDf1sh                        \033[0m"
